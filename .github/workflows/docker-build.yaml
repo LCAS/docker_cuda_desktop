@@ -21,16 +21,13 @@ jobs:
         matrix:
           include:
             - base_image: nvidia/cuda:12.2.2-cudnn8-devel-ubuntu22.04
-              ros_distro: humble
-              push_tag: jammy-humble-cuda12.2
+              push_tag: jammy-cuda12.2
 
             # - base_image: nvidia/cuda:12.6.2-cudnn-devel-ubuntu22.04
-            #   ros_distro: humble
-            #   push_tag: jammy-humble-cuda12.6
+            #   push_tag: jammy-cuda12.6
 
             - base_image: nvidia/cuda:12.6.3-cudnn-devel-ubuntu24.04
-              ros_distro: rolling
-              push_tag: noble-rolling-cuda12.6
+              push_tag: noble-cuda12.6
   
     steps:
     - name: Node Js
@@ -92,4 +89,3 @@ jobs:
         build-args: |
             BASE_IMAGE=${{ matrix.base_image }}
             BRANCH=${{ env.BRANCH }}
-            ROS_DISTRO=${{ matrix.ros_distro }}
