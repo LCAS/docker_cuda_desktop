@@ -221,10 +221,6 @@ RUN echo "# Welcome to the L-CAS Desktop Container.\n" > /opt/image/info.md; \
     echo "* Node.js (with npm) in version $(node --version)." >> /opt/image/info.md; \
     echo "* password-less \`sudo\` to install more packages." >> /opt/image/info.md; \
     echo "\n" >> /opt/image/info.md; \
-    echo "## Tips & Tricks\n" >> /opt/image/info.md; \
-    echo "* run \`code tunnel user login\` to register for remote VSCode tunnel access, then run \`code tunnel\` to start a tunnel" >> /opt/image/info.md; \
-    echo "* use [zrok](https://zrok.io/) to forward local ports" >> /opt/image/info.md; \
-    echo "\n" >> /opt/image/info.md; \
     echo "## Default Environment\n" >> /opt/image/info.md; \
     echo "The following environment variables are set by default:" >> /opt/image/info.md; \
     echo '```' >> /opt/image/info.md; \
