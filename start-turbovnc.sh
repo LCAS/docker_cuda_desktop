@@ -32,7 +32,7 @@ echo "starting novnc ${NOVNC_VERSION}"
 screen -dmS novnc bash -c '/usr/local/novnc/noVNC-${NOVNC_VERSION}/utils/novnc_proxy --vnc localhost:5901 --listen 5801 2>&1 | tee /tmp/novnc.log'
 
 # change background
-(sleep 5; xfconf-query -c xfce4-desktop -p $(xfconf-query -c xfce4-desktop -l | grep "workspace0/last-image") -s /usr/share/backgrounds/xfce/lcas.jpg > /dev/null 2>&1)&
+(sleep 30; xfconf-query -c xfce4-desktop -p $(xfconf-query -c xfce4-desktop -l | grep "workspace0/last-image") -s /usr/share/backgrounds/xfce/lcas.jpg > /dev/null 2>&1)&
 
 echo 
 echo "****************************************************************************************************************************************"
