@@ -20,11 +20,11 @@ jobs:
         fail-fast: false
         matrix:
           include:
+            - base_image: nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04
+              push_tag: jammy-cuda11.8
+            
             - base_image: nvidia/cuda:12.2.2-cudnn8-devel-ubuntu22.04
               push_tag: jammy-cuda12.2
-
-            # - base_image: nvidia/cuda:12.6.2-cudnn-devel-ubuntu22.04
-            #   push_tag: jammy-cuda12.6
 
             - base_image: nvidia/cuda:12.6.3-cudnn-devel-ubuntu24.04
               push_tag: noble-cuda12.6
