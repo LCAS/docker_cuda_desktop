@@ -21,6 +21,9 @@ jobs:
         fail-fast: false
         matrix:
           include:
+            - base_image: westonrobot/ros:humble-ci
+              push_tag: westonrobot
+   
             - base_image: nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04
               push_tag: jammy-cuda11.8
             
