@@ -99,18 +99,18 @@ RUN mkdir -p /etc/ros/rosdep/sources.list.d/ && \
 
 ENV ROSDISTRO_INDEX_URL=https://raw.github.com/LCAS/rosdistro/master/index-v4.yaml
 
-# ENV ZENOH_BRIDGE_VERSION=1.2.1
-# RUN cd /tmp; \
-#     if [ "$(dpkg --print-architecture)" = "arm64" ]; then \
-#       curl -L -O https://github.com/eclipse-zenoh/zenoh-plugin-ros2dds/releases/download/${ZENOH_BRIDGE_VERSION}/zenoh-plugin-ros2dds-${ZENOH_BRIDGE_VERSION}-aarch64-unknown-linux-gnu-standalone.zip; \
-#     else \
-#       curl -L -O https://github.com/eclipse-zenoh/zenoh-plugin-ros2dds/releases/download/${ZENOH_BRIDGE_VERSION}/zenoh-plugin-ros2dds-${ZENOH_BRIDGE_VERSION}-x86_64-unknown-linux-gnu-standalone.zip; \
-#     fi; \
-#     unzip zenoh-plugin-ros2dds-*.zip && \
-#     mv zenoh-bridge-ros2dds /usr/local/bin/ && \
-#     chmod +x /usr/local/bin/zenoh-bridge-ros2dds && \
-#     ldconfig && \
-#     rm -rf zenoh-*
+ENV ZENOH_BRIDGE_VERSION=1.3.1
+RUN cd /tmp; \
+    if [ "$(dpkg --print-architecture)" = "arm64" ]; then \
+      curl -L -O https://github.com/eclipse-zenoh/zenoh-plugin-ros2dds/releases/download/${ZENOH_BRIDGE_VERSION}/zenoh-plugin-ros2dds-${ZENOH_BRIDGE_VERSION}-aarch64-unknown-linux-gnu-standalone.zip; \
+    else \
+      curl -L -O https://github.com/eclipse-zenoh/zenoh-plugin-ros2dds/releases/download/${ZENOH_BRIDGE_VERSION}/zenoh-plugin-ros2dds-${ZENOH_BRIDGE_VERSION}-x86_64-unknown-linux-gnu-standalone.zip; \
+    fi; \
+    unzip zenoh-plugin-ros2dds-*.zip && \
+    mv zenoh-bridge-ros2dds /usr/local/bin/ && \
+    chmod +x /usr/local/bin/zenoh-bridge-ros2dds && \
+    ldconfig && \
+    rm -rf zenoh-*
 
 # install nodejs
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
@@ -219,6 +219,7 @@ RUN echo "# Welcome to the L-CAS Desktop Container.\n" > /opt/image/info.md; \
     echo "The following software is installed:" >> /opt/image/info.md; \
     echo "* The L-CAS ROS2 [apt repositories](https://lcas.lincoln.ac.uk/apt/lcas) are enabled." >> /opt/image/info.md; \
     echo "* The L-CAS [rosdistro](https://github.com/LCAS/rosdistro) is enabled." >> /opt/image/info.md; \
+    echo "* The Zenoh ROS2 bridge \`zenoh-bridge-ros2dds\` (version: ${ZENOH_BRIDGE_VERSION})." >> /opt/image/info.md; \
     echo "* Node.js (with npm) in version $(node --version)." >> /opt/image/info.md; \
     echo "* password-less \`sudo\` to install more packages." >> /opt/image/info.md; \
     echo "\n" >> /opt/image/info.md; \
