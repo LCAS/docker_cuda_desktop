@@ -6,7 +6,7 @@ FROM ${BASE_IMAGE} AS base
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install language
-RUN apt-get update && \
+RUN apt-get update ; \
   apt-get upgrade -y && \
   apt-get install -y --no-install-recommends \
   locales \
@@ -18,16 +18,16 @@ ENV LANG=en_US.UTF-8
 # Install timezone
 RUN ln -fs /usr/share/zoneinfo/UTC /etc/localtime \
   && export DEBIAN_FRONTEND=noninteractive \
-  && apt-get update \
-  && apt-get install -y --no-install-recommends tzdata \
+  && apt-get update ; \
+  apt-get install -y --no-install-recommends tzdata \
   && dpkg-reconfigure --frontend noninteractive tzdata \
   && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update && apt-get -y upgrade \
+RUN apt-get update; apt-get -y upgrade \
     && rm -rf /var/lib/apt/lists/*
 
 # Install common programs
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update; apt-get install -y --no-install-recommends \
     curl \
     gnupg2 \
     lsb-release \
@@ -38,6 +38,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     software-properties-common \
     wget \
     && rm -rf /var/lib/apt/lists/*
+
+RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
 
 # Prepare ROS2
 RUN add-apt-repository universe \
