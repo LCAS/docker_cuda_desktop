@@ -83,9 +83,9 @@ RUN apt-get update && apt-get install -y nodejs sudo && \
 
 ###########################################
 FROM lcas AS image_customisation
-COPY /root /
+#COPY /root /
 #RUN apt-get update && apt-get install -y firefox && rm -rf /var/lib/apt/lists/*
-ENV CUSTOM_PORT=5801
+#ENV CUSTOM_PORT=5801
 #ENV NO_FULL=1
 COPY lcas.png /lcas.png
 ENV WATERMARK_PNG=/lcas.png
