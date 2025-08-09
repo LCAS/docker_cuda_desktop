@@ -25,7 +25,7 @@ jobs:
               push_tag: westonrobot
               dockerfile: Dockerfile
    
-            - base_image: ghcr.io/selkies-project/nvidia-egl-desktop:24.04-20250629090949
+            - base_image: ghcr.io/linuxserver/baseimage-selkies:ubuntunoble
               push_tag: selkies-nvidia-24.04
               dockerfile: Dockerfile.selkies
    
