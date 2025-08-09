@@ -23,19 +23,28 @@ jobs:
           include:
             - base_image: westonrobot/ros:humble-ci
               push_tag: westonrobot
+              dockerfile: Dockerfile
+   
+            - base_image: ghcr.io/selkies-project/nvidia-egl-desktop:24.04
+              push_tag: selkies-nvidia-24.04
+              dockerfile: Dockerfile.selkies
    
             - base_image: nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04
               push_tag: jammy-cuda11.8
+              dockerfile: Dockerfile
 
             - base_image: nvidia/cuda:12.1.0-cudnn8-devel-ubuntu22.04
               push_tag: jammy-cuda12.1
+              dockerfile: Dockerfile
 
             - base_image: nvidia/cuda:12.2.2-cudnn8-devel-ubuntu22.04
               push_tag: jammy-cuda12.2
+              dockerfile: Dockerfile
 
             - base_image: nvidia/cuda:12.6.3-cudnn-devel-ubuntu24.04
               push_tag: noble-cuda12.6
-  
+              dockerfile: Dockerfile
+
     steps:
     - name: Node Js
       uses: actions/setup-node@v4
@@ -86,7 +95,7 @@ jobs:
       uses: docker/build-push-action@v6
       with:
         context: .
-        file: ./Dockerfile
+        file: ./${{ matrix.dockerfile }}
         platforms: linux/amd64,linux/arm64
         push: true
         cache-from: type=registry,ref=lcas.lincoln.ac.uk/cache/${{ steps.docker_image_name.outputs.docker_image }}:${{ matrix.push_tag }}
