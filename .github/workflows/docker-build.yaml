@@ -25,7 +25,7 @@ jobs:
               push_tag: westonrobot
               dockerfile: Dockerfile
    
-            - base_image: ghcr.io/linuxserver/baseimage-selkies:ubuntunoble
+            - base_image: lscr.io/linuxserver/webtop:ubuntu-xfce
               push_tag: selkies-nvidia-24.04
               dockerfile: Dockerfile.selkies
    
