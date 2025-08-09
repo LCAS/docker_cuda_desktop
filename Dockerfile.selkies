@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=ghcr.io/linuxserver/baseimage-selkies:ubuntunoble
+ARG BASE_IMAGE=lscr.io/linuxserver/webtop:ubuntu-xfce
 
 ###########################################
 FROM ${BASE_IMAGE} AS base
@@ -39,49 +39,10 @@ RUN apt-get update; apt-get install -y --no-install-recommends \
     wget \
     && rm -rf /var/lib/apt/lists/*
 
-RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
-
 # Prepare ROS2
 RUN add-apt-repository universe \
   && curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg \
   && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null
-
-################
-# Expose the nvidia driver to allow opengl 
-# Dependencies for glvnd and X11.
-################
-RUN apt-get update \
- && apt-get install -y -qq --no-install-recommends \
-  libglvnd0 \
-  libgl1 \
-  libglx0 \
-  libegl1 \
-  libxext6 \
-  libx11-6 \
-  && rm -rf /var/lib/apt/lists/*
-
-# Env vars for the nvidia-container-runtime.
-ENV NVIDIA_VISIBLE_DEVICES=all
-# enable all capabilities for the container
-# Explained here: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/1.10.0/user-guide.html#driver-capabilities
-ENV NVIDIA_DRIVER_CAPABILITIES=all
-ENV QT_X11_NO_MITSHM=1
-
-
-ARG USERNAME=ros
-ARG USER_UID=1001
-ARG USER_GID=$USER_UID
-
-# Create a non-root user
-RUN groupadd --gid $USER_GID $USERNAME \
-  && useradd -s /bin/bash --uid $USER_UID --gid $USER_GID -m $USERNAME \
-  # Add sudo support for the non-root user
-  && apt-get update \
-  && apt-get install -y --no-install-recommends sudo \
-  && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
-  && chmod 0440 /etc/sudoers.d/$USERNAME \
-  && rm -rf /var/lib/apt/lists/*
-
 
 ###########################################
 FROM base AS lcas
@@ -101,7 +62,7 @@ RUN mkdir -p /etc/ros/rosdep/sources.list.d/ && \
 
 ENV ROSDISTRO_INDEX_URL=https://raw.github.com/LCAS/rosdistro/master/index-v4.yaml
 
-ENV ZENOH_BRIDGE_VERSION=1.3.2
+ENV ZENOH_BRIDGE_VERSION=1.5.0
 RUN cd /tmp; \
     if [ "$(dpkg --print-architecture)" = "arm64" ]; then \
       curl -L -O https://github.com/eclipse-zenoh/zenoh-plugin-ros2dds/releases/download/${ZENOH_BRIDGE_VERSION}/zenoh-plugin-ros2dds-${ZENOH_BRIDGE_VERSION}-aarch64-unknown-linux-gnu-standalone.zip; \
@@ -120,16 +81,22 @@ RUN apt-get update && apt-get install -y nodejs sudo && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+###########################################
+FROM lcas AS image_customisation
+COPY /root /
+#RUN apt-get update && apt-get install -y firefox && rm -rf /var/lib/apt/lists/*
+ENV CUSTOM_PORT=5801
+#ENV NO_FULL=1
+COPY lcas.png /lcas.png
+ENV WATERMARK_PNG=/lcas.png
+ENV WATERMARK_LOCATION=5
+ENV TITLE="L-CAS Desktop Container"
 
 ###########################################
-FROM lcas AS user
-USER ros
-ENV HOME=/home/ros
-WORKDIR ${HOME}
-RUN mkdir -p ${HOME}/.local/bin 
+FROM image_customisation AS user
 
-USER root
-COPY .gi? /tmp/gittemp/.git
+COPY .git /tmp/gittemp/.git
+RUN mkdir -p /opt/image
 RUN git -C /tmp/gittemp log -n 1 --pretty=format:"%H" > /opt/image/version
 
 RUN echo "# Welcome to the L-CAS Desktop Container.\n" > /opt/image/info.md; \
@@ -152,15 +119,4 @@ RUN echo "# Welcome to the L-CAS Desktop Container.\n" > /opt/image/info.md; \
     echo '```' >> /opt/image/info.md; \
     chmod -w /opt/image/info.md
 COPY README.md /opt/image/README.md
-    
-USER ros
-
-RUN mkdir -p ${HOME}/Desktop/ && \
-    ln -s /opt/image/info.md ${HOME}/Desktop/info.md && \
-    ln -s /opt/image/README.md ${HOME}/Desktop/README.md
-
-RUN mkdir -p ~/.config/rosdistro && echo "index_url: https://raw.github.com/LCAS/rosdistro/master/index-v4.yaml" > ~/.config/rosdistro/config.yaml
-
-ENV SHELL=/bin/bash
-
 
