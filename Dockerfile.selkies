@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=ghcr.io/selkies-project/nvidia-egl-desktop:24.04
+ARG BASE_IMAGE=ghcr.io/selkies-project/nvidia-egl-desktop:24.04-20250629090949
 
 ###########################################
 FROM ${BASE_IMAGE} AS base
