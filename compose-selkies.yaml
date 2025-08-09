@@ -1,0 +1,30 @@
+services:
+  lcas_desktop:
+    #image: lscr.io/linuxserver/webtop:ubuntu-xfce
+    build:
+      context: .
+      dockerfile: Dockerfile.selkies
+      args:
+        BASE_IMAGE: lscr.io/linuxserver/webtop:ubuntu-xfce
+        ROS_DISTRO: jazzy
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+    volumes:
+      # persist user's home
+      - user_home:/config
+      - /var/run/docker.sock:/var/run/docker.sock
+    shm_size: "1gb" #optional
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [compute,video,graphics,utility]
+    security_opt:
+      - seccomp:unconfined #optional
+
+volumes:
+  user_home:
+    name: ${COMPOSE_PROJECT_NAME}_lcas_desktop_user_${USER}
