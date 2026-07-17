@@ -3,6 +3,25 @@ ARG BASE_IMAGE=nvidia/cuda:11.8.0-runtime-ubuntu22.04
 ###########################################
 FROM ${BASE_IMAGE} AS base
 
+
+# Ensure apt source layout is compatible (Ubuntu 22.04/24.04, classic + deb822)
+RUN set -eux; \
+    . /etc/os-release; \
+    # If new-style ubuntu.sources exists, ensure it points to valid URIs
+    if [ -f /etc/apt/sources.list.d/ubuntu.sources ]; then \
+      sed -i 's|http://archive.ubuntu.com/ubuntu|http://ports.ubuntu.com/ubuntu-ports|g' /etc/apt/sources.list.d/ubuntu.sources || true; \
+      sed -i 's|http://security.ubuntu.com/ubuntu|http://ports.ubuntu.com/ubuntu-ports|g' /etc/apt/sources.list.d/ubuntu.sources || true; \
+    fi; \
+    # If classic sources.list is missing/empty, create a safe default
+    if [ ! -s /etc/apt/sources.list ]; then \
+      printf "deb http://archive.ubuntu.com/ubuntu %s main universe multiverse restricted\n" "$VERSION_CODENAME" > /etc/apt/sources.list; \
+      printf "deb http://archive.ubuntu.com/ubuntu %s-updates main universe multiverse restricted\n" "$VERSION_CODENAME" >> /etc/apt/sources.list; \
+      printf "deb http://security.ubuntu.com/ubuntu %s-security main universe multiverse restricted\n" "$VERSION_CODENAME" >> /etc/apt/sources.list; \
+    fi; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/*; \
+    apt-get update
+
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install language
@@ -93,9 +112,13 @@ RUN apt-get update && \
     apt-get install -y lsb-release curl software-properties-common unzip apt-transport-https && \
     rm -rf /var/lib/apt/lists/* 
 
-RUN sh -c 'echo "deb https://lcas.lincoln.ac.uk/apt/lcas $(lsb_release -sc) lcas" > /etc/apt/sources.list.d/lcas-latest.list' && \
-    curl -s https://lcas.lincoln.ac.uk/apt/repo_signing.gpg > /etc/apt/trusted.gpg.d/lcas-latest.gpg
-
+RUN set -eux; \
+    codename="$(lsb_release -sc)"; \
+    curl -fsSL https://lcas.lincoln.ac.uk/apt/repo_signing.gpg \
+      -o /usr/share/keyrings/lcas-archive-keyring.gpg; \
+    echo "deb [signed-by=/usr/share/keyrings/lcas-archive-keyring.gpg] https://lcas.lincoln.ac.uk/apt/lcas ${codename} lcas" \
+      > /etc/apt/sources.list.d/lcas-latest.list
+      
 RUN mkdir -p /etc/ros/rosdep/sources.list.d/ && \
     curl -o /etc/ros/rosdep/sources.list.d/20-default.list https://raw.githubusercontent.com/LCAS/rosdistro/master/rosdep/sources.list.d/20-default.list && \
     curl -o /etc/ros/rosdep/sources.list.d/50-lcas.list https://raw.githubusercontent.com/LCAS/rosdistro/master/rosdep/sources.list.d/50-lcas.list
