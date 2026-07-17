@@ -3,12 +3,35 @@ ARG BASE_IMAGE=nvidia/cuda:11.8.0-runtime-ubuntu22.04
 ###########################################
 FROM ${BASE_IMAGE} AS base
 
+
+RUN set -eux; \
+    . /etc/os-release; \
+    codename="${VERSION_CODENAME:-$(lsb_release -sc)}"; \
+    arch="$(dpkg --print-architecture)"; \
+    # remove any inherited/broken sources definitions
+    rm -f /etc/apt/sources.list; \
+    rm -f /etc/apt/sources.list.d/*.list; \
+    rm -f /etc/apt/sources.list.d/*.sources; \
+    # recreate canonical Ubuntu sources
+    if [ "$arch" = "arm64" ] || [ "$arch" = "armhf" ] || [ "$arch" = "ppc64el" ] || [ "$arch" = "s390x" ]; then \
+      mirror="http://ports.ubuntu.com/ubuntu-ports"; \
+    else \
+      mirror="http://archive.ubuntu.com/ubuntu"; \
+    fi; \
+    printf "deb %s %s main restricted universe multiverse\n" "$mirror" "$codename" > /etc/apt/sources.list; \
+    printf "deb %s %s-updates main restricted universe multiverse\n" "$mirror" "$codename" >> /etc/apt/sources.list; \
+    printf "deb %s %s-security main restricted universe multiverse\n" "$mirror" "$codename" >> /etc/apt/sources.list; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/*; \
+    apt-get update
+
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install language
 RUN apt-get update ; \
   apt-get upgrade -y && \
   apt-get install -y --no-install-recommends \
+  ca-certificates curl gnupg lsb-release \
   locales \
   && locale-gen en_US.UTF-8 \
   && update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 \
@@ -92,9 +115,17 @@ RUN apt-get update && \
     apt-get install -y lsb-release curl software-properties-common unzip apt-transport-https && \
     rm -rf /var/lib/apt/lists/* 
 
-RUN sh -c 'echo "deb https://lcas.lincoln.ac.uk/apt/lcas $(lsb_release -sc) lcas" > /etc/apt/sources.list.d/lcas-latest.list' && \
-    curl -s https://lcas.lincoln.ac.uk/apt/repo_signing.gpg > /etc/apt/trusted.gpg.d/lcas-latest.gpg
-
+RUN set -eux; \
+    codename="$(lsb_release -sc)"; \
+    
+    curl -fsSL https://lcas.lincoln.ac.uk/apt/repo_signing.gpg \
+        --fail --show-error --silent --location \
+        --retry 8 --retry-delay 5 --retry-connrefused \
+        --connect-timeout 10 --max-time 180 \
+        -o /usr/share/keyrings/lcas-archive-keyring.gpg; \
+    echo "deb [signed-by=/usr/share/keyrings/lcas-archive-keyring.gpg] https://lcas.lincoln.ac.uk/apt/lcas ${codename} lcas" \
+      > /etc/apt/sources.list.d/lcas-latest.list
+      
 RUN mkdir -p /etc/ros/rosdep/sources.list.d/ && \
     curl -o /etc/ros/rosdep/sources.list.d/20-default.list https://raw.githubusercontent.com/LCAS/rosdistro/master/rosdep/sources.list.d/20-default.list && \
     curl -o /etc/ros/rosdep/sources.list.d/50-lcas.list https://raw.githubusercontent.com/LCAS/rosdistro/master/rosdep/sources.list.d/50-lcas.list
@@ -215,12 +246,12 @@ RUN echo "# Welcome to the L-CAS Desktop Container.\n" > /opt/image/info.md; \
     echo "This is a Virtual Desktop provided by [L-CAS](https://lcas.lincoln.ac.uk/)." >> /opt/image/info.md; \
     echo "You can access it via a web browser at port 5801, e.g. http://localhost:5801 (or wherever you have exposed its internal port)." >> /opt/image/info.md; \
     echo "\n" >> /opt/image/info.md; \
-    echo "*built from https://github.com/LCAS/ros-docker-images\n(commit: [\`$(cat /opt/image/version)\`](https://github.com/LCAS/ros-docker-images/tree/$(cat /opt/image/version)/)),\nprovided to you by [L-CAS](https://lcas.lincoln.ac.uk/).*" >> /opt/image/info.md; \
+    echo "*built from https://github.com//ros-docker-images\n(commit: [\`$(cat /opt/image/version)\`](https://github.com//ros-docker-images/tree/$(cat /opt/image/version)/)),\nprovided to you by [L-CAS](https://.lincoln.ac.uk/).*" >> /opt/image/info.md; \
     echo "\n" >> /opt/image/info.md; \
     echo "## Installed Software\n" >> /opt/image/info.md; \
     echo "The following software is installed:" >> /opt/image/info.md; \
-    echo "* The L-CAS ROS2 [apt repositories](https://lcas.lincoln.ac.uk/apt/lcas) are enabled." >> /opt/image/info.md; \
-    echo "* The L-CAS [rosdistro](https://github.com/LCAS/rosdistro) is enabled." >> /opt/image/info.md; \
+    echo "* The L-CAS ROS2 [apt repositories](https://.lincoln.ac.uk/apt/) are enabled." >> /opt/image/info.md; \
+    echo "* The L-CAS [rosdistro](https://github.com//rosdistro) is enabled." >> /opt/image/info.md; \
     echo "* The Zenoh ROS2 bridge \`zenoh-bridge-ros2dds\` (version: ${ZENOH_BRIDGE_VERSION})." >> /opt/image/info.md; \
     echo "* Node.js (with npm) in version $(node --version)." >> /opt/image/info.md; \
     echo "* password-less \`sudo\` to install more packages." >> /opt/image/info.md; \
@@ -239,7 +270,7 @@ RUN mkdir -p ${HOME}/Desktop/ && \
     ln -s /opt/image/info.md ${HOME}/Desktop/info.md && \
     ln -s /opt/image/README.md ${HOME}/Desktop/README.md
 
-RUN mkdir -p ~/.config/rosdistro && echo "index_url: https://raw.github.com/LCAS/rosdistro/master/index-v4.yaml" > ~/.config/rosdistro/config.yaml
+RUN mkdir -p ~/.config/rosdistro && echo "index_url: https://raw.github.com//rosdistro/master/index-v4.yaml" > ~/.config/rosdistro/config.yaml
 
 ENV DISPLAY=:1
 ENV TVNC_VGL=1
