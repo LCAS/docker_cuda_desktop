@@ -4,20 +4,23 @@ ARG BASE_IMAGE=nvidia/cuda:11.8.0-runtime-ubuntu22.04
 FROM ${BASE_IMAGE} AS base
 
 
-# Ensure apt source layout is compatible (Ubuntu 22.04/24.04, classic + deb822)
 RUN set -eux; \
     . /etc/os-release; \
-    # If new-style ubuntu.sources exists, ensure it points to valid URIs
-    if [ -f /etc/apt/sources.list.d/ubuntu.sources ]; then \
-      sed -i 's|http://archive.ubuntu.com/ubuntu|http://ports.ubuntu.com/ubuntu-ports|g' /etc/apt/sources.list.d/ubuntu.sources || true; \
-      sed -i 's|http://security.ubuntu.com/ubuntu|http://ports.ubuntu.com/ubuntu-ports|g' /etc/apt/sources.list.d/ubuntu.sources || true; \
+    codename="${VERSION_CODENAME:-$(lsb_release -sc)}"; \
+    arch="$(dpkg --print-architecture)"; \
+    # remove any inherited/broken sources definitions
+    rm -f /etc/apt/sources.list; \
+    rm -f /etc/apt/sources.list.d/*.list; \
+    rm -f /etc/apt/sources.list.d/*.sources; \
+    # recreate canonical Ubuntu sources
+    if [ "$arch" = "arm64" ] || [ "$arch" = "armhf" ] || [ "$arch" = "ppc64el" ] || [ "$arch" = "s390x" ]; then \
+      mirror="http://ports.ubuntu.com/ubuntu-ports"; \
+    else \
+      mirror="http://archive.ubuntu.com/ubuntu"; \
     fi; \
-    # If classic sources.list is missing/empty, create a safe default
-    if [ ! -s /etc/apt/sources.list ]; then \
-      printf "deb http://archive.ubuntu.com/ubuntu %s main universe multiverse restricted\n" "$VERSION_CODENAME" > /etc/apt/sources.list; \
-      printf "deb http://archive.ubuntu.com/ubuntu %s-updates main universe multiverse restricted\n" "$VERSION_CODENAME" >> /etc/apt/sources.list; \
-      printf "deb http://security.ubuntu.com/ubuntu %s-security main universe multiverse restricted\n" "$VERSION_CODENAME" >> /etc/apt/sources.list; \
-    fi; \
+    printf "deb %s %s main restricted universe multiverse\n" "$mirror" "$codename" > /etc/apt/sources.list; \
+    printf "deb %s %s-updates main restricted universe multiverse\n" "$mirror" "$codename" >> /etc/apt/sources.list; \
+    printf "deb http://security.ubuntu.com/ubuntu %s-security main restricted universe multiverse\n" "$codename" >> /etc/apt/sources.list; \
     apt-get clean; \
     rm -rf /var/lib/apt/lists/*; \
     apt-get update
