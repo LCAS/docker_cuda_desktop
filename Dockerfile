@@ -20,7 +20,7 @@ RUN set -eux; \
     fi; \
     printf "deb %s %s main restricted universe multiverse\n" "$mirror" "$codename" > /etc/apt/sources.list; \
     printf "deb %s %s-updates main restricted universe multiverse\n" "$mirror" "$codename" >> /etc/apt/sources.list; \
-    printf "deb http://security.ubuntu.com/ubuntu %s-security main restricted universe multiverse\n" "$codename" >> /etc/apt/sources.list; \
+    printf "deb %s %s-security main restricted universe multiverse\n" "$mirror" "$codename" >> /etc/apt/sources.list; \
     apt-get clean; \
     rm -rf /var/lib/apt/lists/*; \
     apt-get update
