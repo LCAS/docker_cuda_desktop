@@ -9,6 +9,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update ; \
   apt-get upgrade -y && \
   apt-get install -y --no-install-recommends \
+  ca-certificates curl gnupg lsb-release \
   locales \
   && locale-gen en_US.UTF-8 \
   && update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 \
